@@ -13,6 +13,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -102,5 +103,47 @@ public class PostsServiceTest {
 
         System.out.println("newTime="+newTime);
         assertThat(newTime).isAfter(beforeTime);
+    }
+
+    @Test
+    void postsService를통해서_삭제가_된다() {
+        // 미리 저장된 값을 하나 생성해둠 ("1", "2");
+        Posts save = postsRepository.save(Posts.builder()
+                .title("1")
+                .content("2")
+                .build());
+
+        // 해당 save id로 삭제
+        postsService.delete(save.getId());
+
+        // 삭제 후, 조회시
+        List<Posts> result = postsRepository.findAll();
+
+        // 아무것도 없어야 함
+        assertThat(result).hasSize(0);
+    }
+
+    @Test
+    void id가_일치해야만_삭제가된다() {
+        // 미리 저장된 값을 하나 생성해둠 ("1", "2");
+        Posts save = postsRepository.save(Posts.builder()
+                .title("1")
+                .content("2")
+                .build());
+
+        Posts deleteTarget = postsRepository.save(Posts.builder()
+                .title("1")
+                .content("2")
+                .build());
+
+        // 해당 save id로 삭제
+        postsService.delete(deleteTarget.getId());
+
+        // 삭제 후, 조회시
+        Optional<Posts> byId = postsRepository.findById(deleteTarget.getId());
+
+        // 아무것도 없어야 함
+        // isPresent() => Posts가 null이 아니고 값이 있는 상태야? true: false
+        assertThat(byId.isPresent()).isFalse();
     }
 }
